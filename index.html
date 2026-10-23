@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tolle</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tolle">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0C181C">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Archivo:wght@500;600&display=swap">
+<style>
+  :root {
+    --ground:#0C181C; --raised:#142329; --sunk:#0A1417;
+    --ink:#EDE6D6; --ink-soft:#8FA4A6;
+    --scripture:#86CDB6; --voice:#E4A85E;
+    --rule:#24383E; --shadow:0 -8px 28px rgba(0,0,0,.5);
+    --size:30px;
+  }
+  :root[data-mode="paper"] {
+    --ground:#F1F4F1; --raised:#FFFFFF; --sunk:#E7EDE9;
+    --ink:#16231F; --ink-soft:#5C7370;
+    --scripture:#1B6553; --voice:#8F5713;
+    --rule:#D3DCD8; --shadow:0 -8px 28px rgba(20,40,35,.13);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;background:var(--ground)}
+  body{
+    margin:0;background:var(--ground);color:var(--ink);
+    font-family:"Source Serif 4","Iowan Old Style",Palatino,"Palatino Linotype",Georgia,serif;
+    line-height:1.5;-webkit-font-smoothing:antialiased;
+    transition:background .25s ease,color .25s ease;
+  }
+  .ui{font-family:Archivo,-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+  button{
+    -webkit-appearance:none;appearance:none;background:transparent;color:var(--ink);
+    border:1px solid var(--rule);border-radius:9px;height:42px;padding:0 .8rem;
+    font-family:Archivo,-apple-system,sans-serif;font-size:14px;font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+    gap:.35rem;touch-action:manipulation;white-space:nowrap;
+  }
+  button:active{background:var(--rule)}
+  button:focus-visible{outline:2px solid var(--scripture);outline-offset:2px}
+  button:disabled{opacity:.55;cursor:default}
+  button.primary{background:var(--scripture);color:var(--ground);border-color:var(--scripture)}
+  button.armed{border-color:var(--voice);color:var(--voice)}
+  button[aria-pressed="true"]{background:var(--scripture);color:var(--ground);border-color:var(--scripture)}
+
+  /* ============ EDIT VIEW ============ */
+  #edit{max-width:52rem;margin:0 auto;padding:calc(2rem + env(safe-area-inset-top)) 1.1rem calc(3rem + env(safe-area-inset-bottom))}
+  .brand{display:flex;align-items:baseline;gap:.6rem;margin-bottom:.25rem}
+  .brand h1{font-size:1.7rem;margin:0;letter-spacing:-.01em}
+  .brand span{
+    font-family:Archivo,sans-serif;font-size:11px;font-weight:600;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--ink-soft);
+  }
+  .tagline{color:var(--ink-soft);font-size:.95rem;margin:0 0 1.6rem}
+
+  .row{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+  .row.tight{gap:.4rem}
+  .grow{flex:1;min-width:0}
+
+  input[type=text],select{
+    -webkit-appearance:none;appearance:none;
+    background:var(--sunk);color:var(--ink);
+    border:1px solid var(--rule);border-radius:9px;height:42px;padding:0 .7rem;
+    font-family:Archivo,-apple-system,sans-serif;font-size:14px;width:100%;
+  }
+  input[type=text]:focus,select:focus,textarea:focus{outline:2px solid var(--scripture);outline-offset:1px}
+  select{padding-right:1.8rem}
+  #saved{flex:0 0 auto;width:auto;min-width:11rem;max-width:16rem}
+
+  .barlabel{
+    font-family:Archivo,sans-serif;font-size:11px;font-weight:600;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-soft);margin:1.5rem 0 .5rem;
+  }
+
+  #source{
+    width:100%;min-height:46vh;resize:vertical;
+    background:var(--sunk);color:var(--ink);
+    border:1px solid var(--rule);border-radius:12px;padding:1rem 1.1rem;
+    font-family:"Source Serif 4","Iowan Old Style",Georgia,serif;
+    font-size:17px;line-height:1.62;
+  }
+
+  .hint{color:var(--ink-soft);font-size:.85rem;margin:.55rem 0 0}
+  #where::before{content:"";display:inline-block;width:.5em;height:.5em;border-radius:50%;
+    background:var(--ink-soft);margin-right:.45em;vertical-align:.08em}
+  #where.synced::before{background:var(--scripture)}
+  #help{
+    margin:.7rem 0 0;padding:.9rem 1.1rem;border:1px solid var(--rule);border-radius:12px;
+    background:var(--sunk);font-size:.9rem;line-height:1.65;
+  }
+  #help table{border-collapse:collapse;width:100%}
+  #help td{padding:.28rem .5rem .28rem 0;vertical-align:top}
+  #help td:first-child{
+    white-space:nowrap;color:var(--scripture);font-weight:600;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.86em;
+  }
+  .stat{color:var(--ink-soft);font-size:.85rem;font-variant-numeric:tabular-nums}
+
+  /* ============ READ VIEW ============ */
+  #read{display:none}
+  #bar{position:fixed;inset:env(safe-area-inset-top) auto auto 0;height:3px;width:0;background:var(--scripture);z-index:40;transition:width .1s linear}
+  #script{width:min(34ch,92vw);margin:0 auto;padding:calc(3.2rem + env(safe-area-inset-top)) 0 60vh;font-size:var(--size)}
+  #script .say{margin:0 0 1.15em}
+  #script b{font-weight:600}
+
+  #script .sec{
+    display:flex;align-items:baseline;gap:.8em;margin:2.4em 0 1.1em;padding-bottom:.45em;
+    border-bottom:1px solid var(--rule);
+    font-family:Archivo,-apple-system,sans-serif;font-size:.42em;font-weight:600;
+    text-transform:uppercase;letter-spacing:.16em;color:var(--ink-soft);
+  }
+  #script .sec:first-child{margin-top:0}
+  #script .sec-name{flex:1}
+  #script .sec-time{font-variant-numeric:tabular-nums;opacity:.65;letter-spacing:.06em}
+
+  #script .scripture,#script .quote{margin:0 0 1.3em;padding-left:.85em}
+  #script .scripture{border-left:3px solid var(--scripture);color:var(--scripture)}
+  #script .quote{border-left:3px solid var(--voice);color:var(--voice)}
+  #script .quote .qt{font-style:italic}
+  #script .cite{
+    display:block;font-family:Archivo,-apple-system,sans-serif;font-style:normal;
+    font-size:.36em;font-weight:600;text-transform:uppercase;letter-spacing:.16em;
+    opacity:.8;margin-bottom:.5em;
+  }
+  #script .quote .cite{margin:.45em 0 0}
+
+  #script .pause{display:flex;align-items:center;gap:.9em;margin:1.9em 0;color:var(--ink-soft)}
+  #script .pause-rule{flex:1;height:1px;background:var(--rule)}
+  #script .pause-label{
+    font-family:Archivo,-apple-system,sans-serif;font-size:.36em;font-weight:600;
+    text-transform:uppercase;letter-spacing:.2em;
+  }
+
+  #dock{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    display:flex;align-items:center;gap:.5rem;
+    padding:.55rem .7rem calc(.55rem + env(safe-area-inset-bottom));
+    background:var(--raised);border-top:1px solid var(--rule);box-shadow:var(--shadow);
+  }
+  #dock button{min-width:44px;height:44px;padding:0 .65rem}
+  .spacer{flex:1}
+  #clock{font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink-soft);letter-spacing:.04em;padding:0 .2rem}
+  #clock.running{color:var(--scripture)}
+  #sizeOut{color:var(--ink-soft);font-variant-numeric:tabular-nums;min-width:3ch;text-align:center;
+    font-family:Archivo,sans-serif;font-size:14px;font-weight:600}
+  #speed{width:84px;accent-color:var(--scripture)}
+  .lbl{font-family:Archivo,sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.13em;color:var(--ink-soft)}
+  @media (max-width:600px){.hide-sm{display:none}#speed{width:56px}#nameRow>.grow{flex:1 0 100%}#saved{flex:1 1 auto;min-width:0;max-width:none}#dock{gap:.3rem;padding-left:.45rem;padding-right:.45rem}#dock button{min-width:36px;padding:0 .4rem}#speed{width:44px}#sizeOut{min-width:2ch}}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div id="bar"></div>
+
+<!-- ============ EDIT ============ -->
+<section id="edit">
+  <div class="brand"><h1>Tolle</h1><span>reading prompter</span></div>
+  <p class="tagline">Paste anything you have to read out loud. Mark it up, then read it big.</p>
+
+  <div class="row" id="nameRow">
+    <div class="grow"><input id="title" type="text" placeholder="Untitled script" aria-label="Script name"></div>
+    <select id="saved" class="ui" aria-label="Saved scripts"><option value="">Saved scripts&hellip;</option></select>
+    <button id="save">Save</button>
+    <button id="del" title="Delete the saved script currently loaded">Delete</button>
+  </div>
+
+  <p class="barlabel">Your text</p>
+  <div class="row tight" style="margin-bottom:.55rem">
+    <button data-mark="sec">Section</button>
+    <button data-mark="scr">Scripture</button>
+    <button data-mark="quo">Quote</button>
+    <button data-mark="pau">Pause</button>
+    <button data-mark="bold">Bold</button>
+    <span class="spacer"></span>
+    <button id="helpBtn" aria-pressed="false">How to mark up</button>
+  </div>
+
+  <textarea id="source" spellcheck="true" aria-label="Script text"></textarea>
+
+  <div id="help" hidden>
+    <table>
+      <tr><td># Heading</td><td>A section marker, with a running time cue beside it.</td></tr>
+      <tr><td>&gt; text</td><td>Scripture. Green, with a rule down the side.</td></tr>
+      <tr><td>&gt; Psalm 23:1 | text</td><td>Same, with the reference printed above it.</td></tr>
+      <tr><td>&gt;&gt; text | Source</td><td>Someone else's words. Amber, with the name underneath.</td></tr>
+      <tr><td>--- breathe</td><td>A pause. The words after it are the cue; leave them off for a plain break.</td></tr>
+      <tr><td>**text**</td><td>Bold, for a line you want to land.</td></tr>
+    </table>
+    <p class="hint" style="margin-top:.7rem">Anything else is just your own words. Blank lines separate paragraphs. Select a line first, then hit a button above and it writes the marks for you.</p>
+  </div>
+
+  <div class="row" style="margin-top:1rem;align-items:center">
+    <span class="stat" id="stats"></span>
+    <span class="spacer"></span>
+    <span class="lbl">Pace</span>
+    <input id="wpm" type="text" inputmode="numeric" style="width:4.6rem;text-align:center" value="130" aria-label="Words per minute">
+    <span class="lbl hide-sm">wpm</span>
+    <button id="clear">Clear</button>
+    <button id="go" class="primary">Read &rarr;</button>
+  </div>
+  <div class="row" style="margin-top:.55rem">
+    <p class="hint grow" id="where" style="margin:0">Saved on this device.</p>
+    <button id="backup" title="Save a backup file of all your scripts">Back up</button>
+    <button id="restore" title="Load scripts from a backup file">Restore</button>
+    <input id="restoreFile" type="file" accept=".json,application/json" hidden>
+  </div>
+</section>
+
+<!-- ============ READ ============ -->
+<section id="read">
+  <main id="script"></main>
+  <div id="dock">
+    <button id="back" aria-label="Back to editing">&larr;</button>
+    <button id="minus" aria-label="Smaller text">A&minus;</button>
+    <span id="sizeOut">30</span>
+    <button id="plus" aria-label="Larger text">A+</button>
+    <button id="mode" aria-label="Switch between stage and paper">Paper</button>
+    <span class="spacer"></span>
+    <span class="lbl hide-sm">scroll</span>
+    <input id="speed" type="range" min="1" max="60" value="18" aria-label="Auto-scroll speed">
+    <button id="play" aria-pressed="false" aria-label="Start auto-scroll">&#9654;</button>
+    <button id="clockbtn" aria-label="Start or reset the timer"><span id="clock">0:00</span></button>
+  </div>
+</section>
+
+<script>
+(function () {
+  var root = document.documentElement, $ = function (id) { return document.getElementById(id); };
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var esc = function (s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  };
+  var inline = function (s) { return esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'); };
+  var words = function (s) { return (s.replace(/\*\*/g, '').match(/[A-Za-z’']+/g) || []).length; };
+  var stamp = function (sec) {
+    var m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  };
+
+  /* ---------- parse + render ---------- */
+  function build(text, wpm) {
+    var out = [], run = 0, para = [];
+    function flush() {
+      if (!para.length) return;
+      out.push('<p class="say">' + inline(para.join(' ')) + '</p>');
+      para = [];
+    }
+    text.split(/\r?\n/).forEach(function (raw) {
+      var line = raw.trim();
+      if (!line) { flush(); return; }
+
+      if (/^#\s+/.test(line)) {
+        flush();
+        out.push('<h2 class="sec"><span class="sec-name">' + inline(line.replace(/^#\s+/, '')) +
+                 '</span><span class="sec-time">' + stamp(run / wpm * 60) + '</span></h2>');
+        return;
+      }
+      if (/^-{3,}/.test(line)) {
+        flush(); run += 3;
+        var cue = line.replace(/^-{3,}\s*/, '');
+        out.push('<div class="pause" role="separator"><span class="pause-rule"></span>' +
+                 (cue ? '<span class="pause-label">' + esc(cue) + '</span>' : '') +
+                 '<span class="pause-rule"></span></div>');
+        return;
+      }
+      if (/^>>\s*/.test(line)) {
+        flush();
+        var q = line.replace(/^>>\s*/, '').split('|');
+        var qt = q[0].trim(), src = (q[1] || '').trim();
+        run += words(qt);
+        out.push('<figure class="quote"><span class="qt">' + inline(qt) + '</span>' +
+                 (src ? '<span class="cite">' + esc(src) + '</span>' : '') + '</figure>');
+        return;
+      }
+      if (/^>\s*/.test(line)) {
+        flush();
+        var v = line.replace(/^>\s*/, '').split('|');
+        var ref = '', body = v[0].trim();
+        if (v.length > 1) { ref = v[0].trim(); body = v.slice(1).join('|').trim(); }
+        run += words(body);
+        out.push('<figure class="scripture">' +
+                 (ref ? '<span class="cite">' + esc(ref) + '</span>' : '') +
+                 inline(body) + '</figure>');
+        return;
+      }
+      run += words(line);
+      para.push(line);
+    });
+    flush();
+    return { html: out.join('\n'), words: run, time: stamp(run / wpm * 60) };
+  }
+
+  /* ---------- edit view ---------- */
+  var src = $('source'), titleEl = $('title'), wpmEl = $('wpm');
+
+  var SAMPLE = [
+    '# Opening',
+    'Paste your own words here. Anything without a mark in front of it reads as plain text, the way you would say it.',
+    '',
+    'You can **bold a line** you want to land.',
+    '',
+    '--- let it sit',
+    '',
+    '# Scripture and quotes',
+    '> Psalm 34:8 | Oh, taste and see that the LORD is good! Blessed is the man who takes refuge in him!',
+    '',
+    '>> Nothing was lacking but love. | Jonathan Edwards',
+    '',
+    'Hit "How to mark up" above for the whole list. There are only six things to know.'
+  ].join('\n');
+
+  function refreshStats() {
+    var w = words(src.value.replace(/^[#>\-]+/gm, ''));
+    var wpm = Math.max(60, Math.min(300, parseInt(wpmEl.value, 10) || 130));
+    $('stats').textContent = w ? (w.toLocaleString() + ' words  ·  about ' + stamp(w / wpm * 60)) : '';
+    store.set('lc.draft', src.value);
+    store.set('lc.title', titleEl.value);
+    store.set('lc.wpm', wpmEl.value);
+  }
+  src.addEventListener('input', refreshStats);
+  titleEl.addEventListener('input', refreshStats);
+  wpmEl.addEventListener('input', refreshStats);
+
+  src.value = store.get('lc.draft', SAMPLE);
+  titleEl.value = store.get('lc.title', '');
+  wpmEl.value = store.get('lc.wpm', '130');
+
+  /* markup buttons — operate on the selected lines */
+  var MARKS = {
+    sec:  function (l) { return '# ' + l.replace(/^#\s*/, ''); },
+    scr:  function (l) { return '> ' + l.replace(/^>+\s*/, ''); },
+    quo:  function (l) { return '>> ' + l.replace(/^>+\s*/, ''); },
+    pau:  function ()  { return '--- breathe'; },
+    bold: function (l) { return l ? '**' + l.replace(/\*\*/g, '') + '**' : '**bold**'; }
+  };
+  document.querySelectorAll('[data-mark]').forEach(function (btn) {
+    btn.onclick = function () {
+      var kind = btn.dataset.mark, v = src.value;
+      var a = src.selectionStart, b = src.selectionEnd;
+      var s = v.lastIndexOf('\n', a - 1) + 1;
+      var e = v.indexOf('\n', b); if (e === -1) e = v.length;
+      var chosen = v.slice(s, e);
+      var next;
+      if (kind === 'pau') {
+        next = chosen + (chosen ? '\n' : '') + '--- breathe';
+      } else if (kind === 'bold' && a !== b) {
+        next = v.slice(s, a) + MARKS.bold(v.slice(a, b)) + v.slice(b, e);
+      } else {
+        next = chosen.split('\n').map(function (l) { return l.trim() ? MARKS[kind](l) : l; }).join('\n');
+      }
+      src.value = v.slice(0, s) + next + v.slice(e);
+      src.focus();
+      src.selectionStart = src.selectionEnd = s + next.length;
+      refreshStats();
+    };
+  });
+
+  $('helpBtn').onclick = function () {
+    var open = $('help').hidden;
+    $('help').hidden = !open;
+    this.setAttribute('aria-pressed', String(open));
+  };
+
+  /* two-tap confirm: first tap arms the button, a second tap within 3 s acts */
+  function twoTap(btn, label, armedLabel, key, act) {
+    var armedKey = null, timer = null;
+    btn.onclick = function () {
+      var k = key();
+      if (k === false) return;
+      if (armedKey !== k) {
+        armedKey = k; btn.textContent = armedLabel; btn.classList.add('armed');
+        clearTimeout(timer);
+        timer = setTimeout(function () { armedKey = null; btn.textContent = label; btn.classList.remove('armed'); }, 3000);
+        return;
+      }
+      clearTimeout(timer); armedKey = null; btn.textContent = label; btn.classList.remove('armed');
+      act(k);
+    };
+  }
+  function flash(btn, text, back) {
+    btn.textContent = text;
+    setTimeout(function () { btn.textContent = back; }, 1600);
+  }
+
+  twoTap($('clear'), 'Clear', 'Tap again to clear', function () {
+    if (!src.value.trim()) { src.focus(); return false; }
+    return 'clear';
+  }, function () { src.value = ''; refreshStats(); src.focus(); });
+
+  /* ---------- saved scripts: kept on this device ---------- */
+  function lib() { try { return JSON.parse(store.get('lc.lib', '{}')) || {}; } catch (e) { return {}; } }
+  function writeLib(o) { store.set('lc.lib', JSON.stringify(o)); }
+
+  function fillSelect() {
+    var l = lib(), sel = $('saved'), cur = titleEl.value;
+    sel.innerHTML = '<option value="">Saved scripts…</option>';
+    Object.keys(l).sort().forEach(function (name) {
+      var o = document.createElement('option');
+      o.value = name; o.textContent = name;
+      if (name === cur) o.selected = true;
+      sel.appendChild(o);
+    });
+    var n = Object.keys(l).length;
+    $('where').textContent = n ? (n + ' script' + (n === 1 ? '' : 's') + ' saved on this device.') : 'Saved on this device.';
+  }
+
+  $('save').onclick = function () {
+    var name = (titleEl.value || '').trim();
+    if (!name) { titleEl.focus(); titleEl.placeholder = 'Give it a name first'; return; }
+    var l = lib(); l[name] = src.value; writeLib(l);
+    flash(this, 'Saved', 'Save'); fillSelect();
+  };
+
+  $('saved').onchange = function () {
+    var l = lib(), name = this.value;
+    if (!name || !(name in l)) return;
+    src.value = l[name]; titleEl.value = name; refreshStats();
+  };
+
+  twoTap($('del'), 'Delete', 'Tap again to delete', function () {
+    var name = (titleEl.value || '').trim();
+    if (!name || !(name in lib())) { flash($('del'), 'Not saved yet', 'Delete'); return false; }
+    return name;
+  }, function (name) {
+    var l = lib(); delete l[name]; writeLib(l); fillSelect();
+  });
+
+  /* backup: one JSON file holding every saved script */
+  $('backup').onclick = async function () {
+    var l = lib(), b = this;
+    if (!Object.keys(l).length) { flash(b, 'Nothing saved yet', 'Back up'); return; }
+    var d = new Date(), pad = function (n) { return String(n).padStart(2, '0'); };
+    var fname = 'tolle-backup-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '.json';
+    var blob = new Blob([JSON.stringify({ app: 'tolle', version: 1, scripts: l }, null, 2)], { type: 'application/json' });
+    try {
+      var file = new File([blob], fname, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Tolle backup' });
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    var url = URL.createObjectURL(blob), link = document.createElement('a');
+    link.href = url; link.download = fname; document.body.appendChild(link); link.click();
+    setTimeout(function () { URL.revokeObjectURL(url); link.remove(); }, 1000);
+  };
+
+  $('restore').onclick = function () { $('restoreFile').click(); };
+  $('restoreFile').onchange = function () {
+    var f = this.files && this.files[0], input = this;
+    if (!f) return;
+    var r = new FileReader();
+    r.onload = function () {
+      try {
+        var data = JSON.parse(r.result);
+        var incoming = (data && data.scripts) || data;
+        if (!incoming || typeof incoming !== 'object') throw new Error('bad');
+        var l = lib(), added = 0;
+        Object.keys(incoming).forEach(function (name) {
+          if (typeof incoming[name] === 'string') { l[name] = incoming[name]; added++; }
+        });
+        if (!added) throw new Error('empty');
+        writeLib(l); fillSelect();
+        flash($('restore'), 'Loaded ' + added, 'Restore');
+      } catch (e) {
+        flash($('restore'), 'Not a Tolle backup', 'Restore');
+      }
+      input.value = '';
+    };
+    r.readAsText(f);
+  };
+
+  fillSelect();
+
+  /* ---------- view switching ---------- */
+  /* the stylesheet hides #read, so set an explicit value — '' would fall back to that rule */
+  var current = 'edit';
+  function show(view) {
+    current = view;
+    $('edit').style.display = view === 'edit' ? 'block' : 'none';
+    $('read').style.display = view === 'read' ? 'block' : 'none';
+    $('bar').style.display  = view === 'read' ? 'block' : 'none';
+  }
+  $('go').onclick = function () {
+    var wpm = Math.max(60, Math.min(300, parseInt(wpmEl.value, 10) || 130));
+    var r = build(src.value, wpm);
+    $('script').innerHTML = r.html || '<p class="say">Nothing to read yet.</p>';
+    show('read'); window.scrollTo(0, 0); progress(); wake(true);
+  };
+  $('back').onclick = function () { stop(); show('edit'); window.scrollTo(0, 0); wake(false); };
+
+  /* keep the screen from dimming while you read */
+  var lock = null;
+  async function wake(on) {
+    try {
+      if (on && 'wakeLock' in navigator) { lock = await navigator.wakeLock.request('screen'); }
+      else if (!on && lock) { await lock.release(); lock = null; }
+    } catch (e) { lock = null; }
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && current === 'read') wake(true);
+  });
+
+  /* ---------- read controls ---------- */
+  var size = parseInt(store.get('lc.size', '30'), 10) || 30;
+  function applySize() {
+    size = Math.max(18, Math.min(72, size));
+    root.style.setProperty('--size', size + 'px');
+    $('sizeOut').textContent = size; store.set('lc.size', size);
+  }
+  $('plus').onclick = function () { size += 2; applySize(); };
+  $('minus').onclick = function () { size -= 2; applySize(); };
+  applySize();
+
+  var mode = store.get('lc.mode', 'stage');
+  function applyMode() {
+    if (mode === 'paper') root.setAttribute('data-mode', 'paper'); else root.removeAttribute('data-mode');
+    $('mode').textContent = (mode === 'paper') ? 'Stage' : 'Paper';
+    store.set('lc.mode', mode);
+  }
+  $('mode').onclick = function () { mode = (mode === 'paper') ? 'stage' : 'paper'; applyMode(); };
+  applyMode();
+
+  function progress() {
+    var h = document.documentElement.scrollHeight - window.innerHeight;
+    $('bar').style.width = (h > 0 ? (window.scrollY / h) * 100 : 0) + '%';
+  }
+  window.addEventListener('scroll', progress, { passive: true });
+  window.addEventListener('resize', progress);
+
+  var playing = false, carry = 0, last = 0, raf = null;
+  function frame(t) {
+    if (!playing) return;
+    if (!last) last = t;
+    var dt = Math.min(t - last, 100); last = t;
+    carry += (Number($('speed').value) / 20) * (dt / 16.67);
+    var whole = Math.floor(carry);
+    if (whole >= 1) { window.scrollBy(0, whole); carry -= whole; }
+    if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) stop();
+    else raf = requestAnimationFrame(frame);
+  }
+  function start() {
+    playing = true; last = 0; carry = 0;
+    $('play').textContent = '❚❚'; $('play').setAttribute('aria-pressed', 'true');
+    raf = requestAnimationFrame(frame);
+  }
+  function stop() {
+    playing = false; if (raf) cancelAnimationFrame(raf);
+    $('play').textContent = '▶'; $('play').setAttribute('aria-pressed', 'false');
+  }
+  $('play').onclick = function () { playing ? stop() : start(); };
+  $('script').addEventListener('pointerdown', function () { if (playing) stop(); });
+
+  var t0 = null, tick = null;
+  function paintClock() {
+    var s = t0 ? Math.floor((Date.now() - t0) / 1000) : 0;
+    $('clock').textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  $('clockbtn').onclick = function () {
+    if (t0) { t0 = null; clearInterval(tick); tick = null; $('clock').classList.remove('running'); paintClock(); }
+    else { t0 = Date.now(); $('clock').classList.add('running'); paintClock(); tick = setInterval(paintClock, 500); }
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (current !== 'read') return;
+    if (e.key === ' ') { e.preventDefault(); playing ? stop() : start(); }
+    else if (e.key === '+' || e.key === '=') { size += 2; applySize(); }
+    else if (e.key === '-') { size -= 2; applySize(); }
+    else if (e.key === 'Escape') { stop(); show('edit'); wake(false); }
+  });
+
+  show('edit'); refreshStats();
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+</script>
+</body>
+</html>
